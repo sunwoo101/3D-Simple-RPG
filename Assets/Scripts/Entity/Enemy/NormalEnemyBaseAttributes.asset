@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2146f74816304e8e9087d8a7a6fc009, type: 3}
+  m_Name: NormalEnemyBaseAttributes
+  m_EditorClassIdentifier: 
+  m_MovementSpeed: 5.5
+  m_SprintSpeedMultiplier: 0
+  m_JumpHeight: 0
+  m_BaseHealth: 35
+  m_BaseAttackDamage: 8
+  m_BowMaxChargeTime: 0
+  m_BowKnockback: 0
