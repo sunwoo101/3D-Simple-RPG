@@ -5,7 +5,7 @@ using TMPro;
 
 namespace Entity.Player
 {
-    public class DamageText : MonoBehaviour
+    public class FadeText : MonoBehaviour
     {
         #region Variables
 

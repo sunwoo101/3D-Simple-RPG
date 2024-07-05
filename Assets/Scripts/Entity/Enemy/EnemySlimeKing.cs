@@ -19,6 +19,7 @@ namespace Entity.Enemy
         [SerializeField] protected BoxCollider m_SlimeMinionSpawnBounds;
         [SerializeField] protected int m_SlimeMinionSpawnCount;
         protected bool m_SpanwedSlimes;
+        [SerializeField] protected GameObject m_BossTitle;
 
         protected bool m_BattleEnabled = false;
 
@@ -263,7 +264,11 @@ namespace Entity.Enemy
 
         public override void TakeDamage(float damage, Transform damageSource)
         {
-            m_BattleEnabled = true;
+            if (!m_BattleEnabled)
+            {
+                m_BossTitle.SetActive(true);
+                m_BattleEnabled = true;
+            }
 
             if (m_Health <= damage)
             {
