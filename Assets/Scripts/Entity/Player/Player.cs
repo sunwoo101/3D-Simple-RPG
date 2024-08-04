@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Data;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -22,7 +23,8 @@ namespace Entity.Player
             Sprinting,
             Jumping,
             Aiming,
-            Attacking
+            Attacking,
+            Death
         }
 
         #endregion
@@ -42,14 +44,40 @@ namespace Entity.Player
         protected Animator m_Animator;
         protected PlayerHUD m_PlayerHUD;
         [SerializeField] protected GameObject m_CriticalArrowIndicator;
+        [SerializeField] protected Image m_DeathDim;
+        [SerializeField] protected float m_DeathDimSpeed;
 
         // Attributes
         [SerializeField] protected float m_AdditionalAttackDamagePerLevel;
 
         #endregion
 
+        protected void LoadData()
+        {
+            SaveData data = SaveSystem.Load();
+
+            if (data != null)
+            {
+                m_PlayerAttributesPersistentSO.m_Level = data.level;
+                m_PlayerAttributesPersistentSO.m_Experience = data.experience;
+            }
+            else
+            {
+                m_PlayerAttributesPersistentSO.m_Level = 1;
+                m_PlayerAttributesPersistentSO.m_Experience = 0;
+            }
+        }
+
+        internal void SaveData()
+        {
+            SaveData data = new SaveData(m_PlayerAttributesPersistentSO.m_Level, m_PlayerAttributesPersistentSO.m_Experience);
+
+            SaveSystem.Save(data);
+        }
+
         protected override void Start()
         {
+            // Initial state
             m_StateMachine = StateMachine.Idle;
             m_StateBuffer = StateMachine.Idle;
 
@@ -65,18 +93,20 @@ namespace Entity.Player
             InputHandler.s_InputMode = InputHandler.InputMode.KBMouse;
             m_InputHandler.Enable();
 
+            // Lock cursor
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
 
-            m_PlayerHUD.SetHealthBar(m_EntityBaseAttributesSO.m_BaseHealth, m_PlayerAttributesPersistentSO.m_Health);
-            m_PlayerHUD.SetChargeIndicator(m_EntityBaseAttributesSO.m_BowMaxChargeTime, m_AttackHandler.m_Charge);
-
-            m_PlayerAttributesPersistentSO.m_Level = 1;
-            m_PlayerAttributesPersistentSO.m_Experience = 0;
+            // Load data
+            LoadData();
             m_PlayerHUD.SetLevelText(m_PlayerAttributesPersistentSO.m_Level);
             m_PlayerAttributesPersistentSO.UpdateExperienceRequired();
             m_PlayerHUD.SetExperienceBar(m_PlayerAttributesPersistentSO.m_ExperienceRequiredForLevel, m_PlayerAttributesPersistentSO.m_Experience);
 
+            // HUD setup
+            ResetHealth();
+            m_PlayerHUD.SetHealthBar(m_EntityBaseAttributesSO.m_BaseHealth, m_PlayerAttributesPersistentSO.m_Health);
+            m_PlayerHUD.SetChargeIndicator(m_EntityBaseAttributesSO.m_BowMaxChargeTime, m_AttackHandler.m_Charge);
             m_CriticalArrowIndicator.SetActive(false);
         }
 
@@ -110,6 +140,10 @@ namespace Entity.Player
 
                 case StateMachine.Attacking:
                     AttackingState();
+                    break;
+
+                case StateMachine.Death:
+                    DeathState();
                     break;
 
                 default:
@@ -161,6 +195,7 @@ namespace Entity.Player
             m_Animator.SetBool("Jump", false);
             m_Animator.SetBool("Aim", false);
             m_Animator.SetBool("Attack", false);
+            m_Animator.SetBool("Death", false);
         }
 
         protected void WalkingState()
@@ -197,6 +232,7 @@ namespace Entity.Player
             m_Animator.SetBool("Jump", false);
             m_Animator.SetBool("Aim", false);
             m_Animator.SetBool("Attack", false);
+            m_Animator.SetBool("Death", false);
         }
 
         protected void SprintingState()
@@ -225,6 +261,7 @@ namespace Entity.Player
             m_Animator.SetBool("Jump", false);
             m_Animator.SetBool("Aim", false);
             m_Animator.SetBool("Attack", false);
+            m_Animator.SetBool("Death", false);
         }
 
         protected void JumpingState()
@@ -243,6 +280,7 @@ namespace Entity.Player
             m_Animator.SetBool("Jump", true);
             m_Animator.SetBool("Aim", false);
             m_Animator.SetBool("Attack", false);
+            m_Animator.SetBool("Death", false);
         }
 
         protected void AimingState()
@@ -305,6 +343,7 @@ namespace Entity.Player
             m_Animator.SetBool("Jump", false);
             m_Animator.SetBool("Aim", true);
             m_Animator.SetBool("Attack", false);
+            m_Animator.SetBool("Death", false);
         }
 
         protected void AttackingState()
@@ -321,6 +360,28 @@ namespace Entity.Player
             m_Animator.SetBool("Jump", false);
             m_Animator.SetBool("Aim", false);
             m_Animator.SetBool("Attack", true);
+            m_Animator.SetBool("Death", false);
+        }
+
+        protected void DeathState()
+        {
+            m_Animator.SetBool("Idle", false);
+            m_Animator.SetBool("Walk", false);
+            m_Animator.SetBool("Sprint", false);
+            m_Animator.SetBool("Jump", false);
+            m_Animator.SetBool("Aim", false);
+            m_Animator.SetBool("Attack", false);
+            m_Animator.SetBool("Death", true);
+
+            Color color = m_DeathDim.color;
+            color.a += m_DeathDimSpeed * Time.deltaTime;
+            m_DeathDim.color = color;
+
+            if (color.a >= 1f)
+            {
+                SaveData();
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
         }
 
         #endregion
@@ -448,7 +509,7 @@ namespace Entity.Player
 
         public override void Death()
         {
-            base.Death();
+            m_StateMachine = StateMachine.Death;
         }
 
         #endregion

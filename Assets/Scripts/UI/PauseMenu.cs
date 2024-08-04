@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Entity.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -51,6 +52,9 @@ namespace UI
 
         public void MainMenu()
         {
+            Player player = GameObject.Find("Player").GetComponent<Player>();
+            player.SaveData();
+            
             Time.timeScale = 1;
             SceneManager.LoadScene(m_MainMenuSceneName);
         }

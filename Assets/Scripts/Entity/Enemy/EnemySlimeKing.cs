@@ -20,6 +20,7 @@ namespace Entity.Enemy
         [SerializeField] protected int m_SlimeMinionSpawnCount;
         protected bool m_SpanwedSlimes;
         [SerializeField] protected GameObject m_BossTitle;
+        [SerializeField] protected GameObject m_WinScreenPanel;
 
         protected bool m_BattleEnabled = false;
 
@@ -300,6 +301,15 @@ namespace Entity.Enemy
             }
 
             m_HealthBar.UpdateHealthBar(m_EntityBaseAttributesSO.m_BaseHealth, m_Health);
+        }
+
+        public override void Death()
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            Time.timeScale = 0;
+            m_WinScreenPanel.SetActive(true);
+            Destroy(gameObject);
         }
     }
 }
